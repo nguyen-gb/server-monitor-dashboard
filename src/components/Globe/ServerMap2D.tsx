@@ -500,7 +500,7 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
           {/* Mode label indicator */}
           <div className="absolute left-4 top-4 z-10 flex h-8 items-center gap-2 rounded-lg border border-border/50 bg-card/90 px-2.5 shadow-md backdrop-blur-sm">
             <Zap className="h-4 w-4 text-warning animate-pulse" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Drag to Pan · Scroll to Zoom</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Drag to Pan / Scroll to Zoom</span>
           </div>
 
           <canvas
@@ -632,7 +632,7 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
               className="mt-5 flex items-center gap-1 text-xs font-semibold text-primary hover:underline transition-all cursor-pointer"
             >
               See All Demographics
-              <span className="text-[10px]">↗</span>
+              <span className="text-[10px]">Open</span>
             </button>
           )}
         </div>

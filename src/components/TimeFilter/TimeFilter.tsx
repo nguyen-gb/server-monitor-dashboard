@@ -8,9 +8,9 @@ interface TimeFilterProps {
 }
 
 const rangeOptions: { value: TimeRange; label: string; icon?: string }[] = [
-  { value: "24h", label: "24 Hours" },
-  { value: "week", label: "7 Days" },
-  { value: "month", label: "30 Days" },
+  { value: "24h", label: "Last 24 Hours" },
+  { value: "week", label: "Last Week" },
+  { value: "month", label: "Last Month" },
   { value: "custom", label: "Custom Range" },
 ];
 
@@ -63,14 +63,20 @@ export default function TimeFilter({ filter, onChange }: TimeFilterProps) {
               type="date"
               value={filter.startDate ? filter.startDate.toISOString().split("T")[0] : ""}
               onChange={(e) => onChange({ ...filter, startDate: new Date(e.target.value) })}
+              onKeyDown={(e) => e.preventDefault()}
+              onPaste={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
               className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-foreground outline-none transition-all focus:border-[#ea3b92] focus:ring-2 focus:ring-[#ea3b92]/20"
               id="date-start"
             />
-            <span className="text-xs text-muted-foreground font-medium">→</span>
+            <span className="text-xs text-muted-foreground font-medium">to</span>
             <input
               type="date"
               value={filter.endDate ? filter.endDate.toISOString().split("T")[0] : ""}
               onChange={(e) => onChange({ ...filter, endDate: new Date(e.target.value + "T23:59:59") })}
+              onKeyDown={(e) => e.preventDefault()}
+              onPaste={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
               className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-foreground outline-none transition-all focus:border-[#ea3b92] focus:ring-2 focus:ring-[#ea3b92]/20"
               id="date-end"
             />

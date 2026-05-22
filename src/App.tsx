@@ -14,7 +14,7 @@ import ActivityFeed from "@/components/Activity/ActivityFeed";
 
 import { servers } from "@/data/servers";
 import { activities } from "@/data/activities";
-import { countByField, getTopItems, countNewServers, getServerTimeline } from "@/utils/statsUtils";
+import { countByField, getTopItems, countNewServers, getServerTimeline, filterServersByTime } from "@/utils/statsUtils";
 import type { TimeFilter } from "@/types/server";
 
 export default function App() {
@@ -24,6 +24,7 @@ export default function App() {
   const totalServers = servers.length;
   const onlineServers = servers.filter((s) => s.status === "online").length;
   const offlineServers = servers.filter((s) => s.status === "offline").length;
+  const filteredServers = useMemo(() => filterServersByTime(servers, timeFilter), [timeFilter]);
   const newServers = useMemo(() => countNewServers(servers, timeFilter), [timeFilter]);
 
   const osData = useMemo(() => getTopItems(countByField(servers, "os"), 6), []);
@@ -43,6 +44,7 @@ export default function App() {
             value={totalServers}
             icon={<Server className="h-5 w-5" />}
             variant="primary"
+            trend={{ value: filteredServers.length, label: "created in period" }}
           />
           <StatCard
             title="Online"
@@ -140,7 +142,7 @@ export default function App() {
             {" "}Dashboard &copy; {new Date().getFullYear()}
           </p>
           <p className="mt-1 text-[10px] text-muted-foreground/60">
-            Built with React · Tailwind CSS · react-globe.gl · Recharts
+            Built with React / Tailwind CSS / react-globe.gl / Recharts
           </p>
         </footer>
       </main>

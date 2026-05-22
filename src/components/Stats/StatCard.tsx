@@ -67,7 +67,7 @@ export default function StatCard({ title, value, icon, trend, variant = "default
                   color: config.accent,
                 }}
               >
-                {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value)}
+                {trend.value >= 0 ? "+" : "-"}{Math.abs(trend.value)}
               </span>
               <span className="text-[10px] text-muted-foreground">{trend.label}</span>
             </div>
