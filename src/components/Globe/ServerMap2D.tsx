@@ -121,6 +121,7 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
   const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
+  const pointerDownRef = useRef({ x: 0, y: 0 });
   const panOffsetRef = useRef({ x: 0, y: 0 });
 
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
@@ -394,12 +395,32 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
   }, [draw]);
 
   // Panning & dragging event handlers
+  const findClosestLocationGroup = useCallback(
+    (x: number, y: number) => {
+      let closestGroup: any = null;
+      let minDistance = Math.max(22, 26 * zoom);
+
+      for (const group of locationGroups) {
+        const projected = latLngToXY(group.lat, group.lng, dimensions.width, dimensions.height, zoom, panOffsetRef.current);
+        const dist = Math.sqrt((x - projected.x) ** 2 + (y - projected.y) ** 2);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestGroup = group;
+        }
+      }
+
+      return closestGroup;
+    },
+    [dimensions, locationGroups, zoom]
+  );
+
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     isDraggingRef.current = true;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    pointerDownRef.current = { x: e.clientX, y: e.clientY };
     if (canvasRef.current) {
       canvasRef.current.style.cursor = "grabbing";
     }
@@ -432,17 +453,7 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
       if (e.pointerType === "touch") return;
 
       // Magnetic Hover Snapping: Snaps to the single closest server node cluster within a generous threshold
-      let closestGroup: any = null;
-      let minDistance = Math.max(22, 26 * zoom); // Snapping radius (pixels)
-
-      for (const group of locationGroups) {
-        const { x, y } = latLngToXY(group.lat, group.lng, dimensions.width, dimensions.height, zoom, panOffsetRef.current);
-        const dist = Math.sqrt((mouseX - x) ** 2 + (mouseY - y) ** 2);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closestGroup = group;
-        }
-      }
+      const closestGroup = findClosestLocationGroup(mouseX, mouseY);
 
       if (closestGroup) {
         setHoveredServer({ x: mouseX, y: mouseY, servers: closestGroup.servers, country: closestGroup.country });
@@ -450,19 +461,38 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
         setHoveredServer(null);
       }
     },
-    [dimensions, locationGroups, zoom]
+    [findClosestLocationGroup]
   );
 
   const handlePointerUpOrCancel = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    const movedDistance = Math.sqrt(
+      (e.clientX - pointerDownRef.current.x) ** 2 + (e.clientY - pointerDownRef.current.y) ** 2
+    );
+
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
     isDraggingRef.current = false;
     setIsDragging(false);
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = "grab";
+
+    if (canvas) {
+      canvas.style.cursor = "grab";
+
+      if (movedDistance < 6) {
+        const rect = canvas.getBoundingClientRect();
+        const pointerX = e.clientX - rect.left;
+        const pointerY = e.clientY - rect.top;
+        const closestGroup = findClosestLocationGroup(pointerX, pointerY);
+
+        if (closestGroup) {
+          setHoveredServer({ x: pointerX, y: pointerY, servers: closestGroup.servers, country: closestGroup.country });
+        } else {
+          setHoveredServer(null);
+        }
+      }
     }
-  }, []);
+  }, [findClosestLocationGroup]);
 
   // Restore defaults
   const handleReset = useCallback(() => {
