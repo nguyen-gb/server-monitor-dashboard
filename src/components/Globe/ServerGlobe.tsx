@@ -26,7 +26,8 @@ export default function ServerGlobe({ servers }: ServerGlobeProps) {
     const updateSize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        setDimensions({ width: rect.width, height: Math.min(rect.width * 0.65, 520) });
+        const height = rect.width < 640 ? 430 : Math.min(rect.width * 0.65, 520);
+        setDimensions({ width: rect.width, height });
       }
     };
     updateSize();
@@ -145,64 +146,66 @@ export default function ServerGlobe({ servers }: ServerGlobeProps) {
         <p className="mt-0.5 text-2xl font-extrabold text-[#ea3b92]">{servers.length}</p>
       </div>
 
-      <GlobeComponent
-        ref={globeRef}
-        width={dimensions.width || 600}
-        height={dimensions.height || 450}
-        globeImageUrl={
-          isDark
-            ? "//unpkg.com/three-globe/example/img/earth-night.jpg"
-            : "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        }
-        backgroundImageUrl={isDark ? "//unpkg.com/three-globe/example/img/night-sky.png" : ""}
-        backgroundColor={isDark ? "#06080f" : "#f0f2f5"}
-        atmosphereColor={isDark ? "#ea3b92" : "#3b82f6"}
-        atmosphereAltitude={0.18}
-        pointsData={pointsData}
-        pointAltitude={(d: any) => d.size * 0.04}
-        pointRadius={(d: any) => Math.max(1.6, d.size * 2.5)}
-        pointColor={(d: any) => d.color}
-        pointLabel={(d: any) => {
-          const serverList = d.servers
-            .slice(0, 5)
-            .map(
-              (s: Server) =>
-                `<div style="display:flex;align-items:center;gap:8px;padding:3px 0">
-                  <span style="width:6px;height:6px;border-radius:50%;background:${s.status === "online" ? "#10b981" : "#ef4444"};display:inline-block;box-shadow:0 0 4px ${s.status === "online" ? "#10b981" : "#ef4444"}60"></span>
-                  <span style="color:#7f8ea3;font-size:11px">${s.ip}</span>
-                  <span style="font-weight:600;font-size:11px">${s.hostname}</span>
-                </div>`
-            )
-            .join("");
-          const moreText =
-            d.servers.length > 5
-              ? `<div style="color:#7f8ea3;padding-top:6px;font-size:10px;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px">+${d.servers.length - 5} more servers</div>`
-              : "";
-          return `<div style="background:rgba(6,8,15,0.96);border:1px solid rgba(234,59,146,0.25);border-radius:14px;padding:14px 18px;font-family:Inter,sans-serif;font-size:12px;color:#e2e8f0;min-width:240px;backdrop-filter:blur(12px);box-shadow:0 20px 60px rgba(0,0,0,0.5)">
-            <div style="font-weight:800;font-size:14px;margin-bottom:2px;background:linear-gradient(135deg,#ea3b92,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${d.country}</div>
-            <div style="font-size:11px;color:#7f8ea3;margin-bottom:8px;font-weight:500">${d.count} server${d.count > 1 ? "s" : ""} at this location</div>
-            ${serverList}
-            ${moreText}
-          </div>`;
-        }}
-        onPointHover={handlePointHover}
-        ringsData={ringsData}
-        ringColor={() => (t: number) => `rgba(234, 59, 146, ${1 - t})`}
-        ringMaxRadius="maxR"
-        ringPropagationSpeed="propagationSpeed"
-        ringRepeatPeriod="repeatPeriod"
-        labelsData={labelsData}
-        labelLat={(d: any) => d.lat}
-        labelLng={(d: any) => d.lng}
-        labelText={(d: any) => d.text}
-        labelSize={(d: any) => d.size}
-        labelColor={() => "#ffffff"}
-        labelDotRadius={0}
-        labelAltitude={(d: any) => d.altitude}
-        labelResolution={3}
-        onGlobeReady={handleGlobeReady}
-        animateIn={true}
-      />
+      <div className="translate-y-12 sm:translate-y-0">
+        <GlobeComponent
+          ref={globeRef}
+          width={dimensions.width || 600}
+          height={dimensions.height || 450}
+          globeImageUrl={
+            isDark
+              ? "//unpkg.com/three-globe/example/img/earth-night.jpg"
+              : "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+          }
+          backgroundImageUrl={isDark ? "//unpkg.com/three-globe/example/img/night-sky.png" : ""}
+          backgroundColor={isDark ? "#06080f" : "#f0f2f5"}
+          atmosphereColor={isDark ? "#ea3b92" : "#3b82f6"}
+          atmosphereAltitude={0.18}
+          pointsData={pointsData}
+          pointAltitude={(d: any) => d.size * 0.04}
+          pointRadius={(d: any) => Math.max(1.6, d.size * 2.5)}
+          pointColor={(d: any) => d.color}
+          pointLabel={(d: any) => {
+            const serverList = d.servers
+              .slice(0, 5)
+              .map(
+                (s: Server) =>
+                  `<div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+                    <span style="width:6px;height:6px;border-radius:50%;background:${s.status === "online" ? "#10b981" : "#ef4444"};display:inline-block;box-shadow:0 0 4px ${s.status === "online" ? "#10b981" : "#ef4444"}60"></span>
+                    <span style="color:#7f8ea3;font-size:11px">${s.ip}</span>
+                    <span style="font-weight:600;font-size:11px">${s.hostname}</span>
+                  </div>`
+              )
+              .join("");
+            const moreText =
+              d.servers.length > 5
+                ? `<div style="color:#7f8ea3;padding-top:6px;font-size:10px;border-top:1px solid rgba(255,255,255,0.06);margin-top:4px">+${d.servers.length - 5} more servers</div>`
+                : "";
+            return `<div style="background:rgba(6,8,15,0.96);border:1px solid rgba(234,59,146,0.25);border-radius:14px;padding:14px 18px;font-family:Inter,sans-serif;font-size:12px;color:#e2e8f0;min-width:240px;backdrop-filter:blur(12px);box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+              <div style="font-weight:800;font-size:14px;margin-bottom:2px;background:linear-gradient(135deg,#ea3b92,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${d.country}</div>
+              <div style="font-size:11px;color:#7f8ea3;margin-bottom:8px;font-weight:500">${d.count} server${d.count > 1 ? "s" : ""} at this location</div>
+              ${serverList}
+              ${moreText}
+            </div>`;
+          }}
+          onPointHover={handlePointHover}
+          ringsData={ringsData}
+          ringColor={() => (t: number) => `rgba(234, 59, 146, ${1 - t})`}
+          ringMaxRadius="maxR"
+          ringPropagationSpeed="propagationSpeed"
+          ringRepeatPeriod="repeatPeriod"
+          labelsData={labelsData}
+          labelLat={(d: any) => d.lat}
+          labelLng={(d: any) => d.lng}
+          labelText={(d: any) => d.text}
+          labelSize={(d: any) => d.size}
+          labelColor={() => "#ffffff"}
+          labelDotRadius={0}
+          labelAltitude={(d: any) => d.altitude}
+          labelResolution={3}
+          onGlobeReady={handleGlobeReady}
+          animateIn={true}
+        />
+      </div>
 
       {/* Gradient overlay bottom */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-card to-transparent" />

@@ -119,6 +119,7 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
   const [zoom, setZoom] = useState(1.0);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const panOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -393,7 +394,10 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
   }, [draw]);
 
   // Panning & dragging event handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDraggingRef.current = true;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     if (canvasRef.current) {
@@ -401,8 +405,8 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
     }
   }, []);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -410,7 +414,8 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      if (isDragging) {
+      if (isDraggingRef.current) {
+        e.preventDefault();
         const dx = e.clientX - dragStartRef.current.x;
         const dy = e.clientY - dragStartRef.current.y;
         
@@ -423,6 +428,8 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
         setHoveredServer(null); // Hide tooltip during active translation dragging
         return;
       }
+
+      if (e.pointerType === "touch") return;
 
       // Magnetic Hover Snapping: Snaps to the single closest server node cluster within a generous threshold
       let closestGroup: any = null;
@@ -443,10 +450,14 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
         setHoveredServer(null);
       }
     },
-    [dimensions, locationGroups, zoom, isDragging]
+    [dimensions, locationGroups, zoom]
   );
 
-  const handleMouseUpOrLeave = useCallback(() => {
+  const handlePointerUpOrCancel = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    isDraggingRef.current = false;
     setIsDragging(false);
     if (canvasRef.current) {
       canvasRef.current.style.cursor = "grab";
@@ -509,12 +520,13 @@ export default function ServerMap2D({ servers }: ServerMap2DProps) {
             style={{ 
               width: dimensions.width || "100%", 
               height: dimensions.height || 380,
-              cursor: isDragging ? "grabbing" : "grab"
+              cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none"
             }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUpOrLeave}
-            onMouseLeave={handleMouseUpOrLeave}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUpOrCancel}
+            onPointerCancel={handlePointerUpOrCancel}
           />
 
           {/* Interactive contextual tooltip */}

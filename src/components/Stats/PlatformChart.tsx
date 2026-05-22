@@ -47,6 +47,8 @@ export default function PlatformChart({ data }: PlatformChartProps) {
                 boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
                 padding: "8px 14px",
               }}
+              itemStyle={{ color: theme === "dark" ? "#e2e8f0" : "#0f172a" }}
+              labelStyle={{ color: theme === "dark" ? "#cbd5e1" : "#334155" }}
               cursor={{ fill: theme === "dark" ? "rgba(234,59,146,0.04)" : "rgba(234,59,146,0.06)" }}
             />
             <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={18}>
